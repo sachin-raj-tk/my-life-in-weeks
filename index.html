@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <meta name="theme-color" content="#0a0608" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>My Life in Weeks</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0a0608;
+      color: #e8e4d9;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      min-height: 100vh;
+      min-height: 100dvh;
+      overflow-x: hidden;
+    }
+
+    .bg-glow {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background:
+        radial-gradient(ellipse 80% 50% at 50% 0%, rgba(160,40,30,0.09) 0%, transparent 65%),
+        radial-gradient(ellipse 60% 60% at 80% 100%, rgba(30,90,40,0.07) 0%, transparent 65%);
+    }
+
+    .wrapper {
+      position: relative; z-index: 1;
+      display: flex; flex-direction: column; align-items: center;
+      padding: 40px 16px 60px;
+    }
+
+    .eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; letter-spacing: 0.35em;
+      color: #7a5a4a; text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      font-size: clamp(22px, 6vw, 38px);
+      font-weight: 300; letter-spacing: 0.06em;
+      line-height: 1.1; text-align: center;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      font-size: 13px; font-style: italic;
+      color: #7a7060; font-weight: 300;
+      margin-bottom: 28px;
+    }
+
+    .stats {
+      display: flex; gap: clamp(14px, 5vw, 36px);
+      flex-wrap: wrap; justify-content: center;
+      margin-bottom: 18px;
+    }
+
+    .stat { text-align: center; }
+    .stat-value {
+      font-size: clamp(16px, 4vw, 24px);
+      font-weight: 300; color: #e8e4d9;
+    }
+    .stat-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px; letter-spacing: 0.2em;
+      color: #5a5040; text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    .progress-bar {
+      width: min(100%, 500px);
+      height: 2px; background: rgba(255,255,255,0.06);
+      border-radius: 2px; overflow: hidden;
+      margin-bottom: 28px;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #8b1a1a, #e07a30, #3a8a42);
+      border-radius: 2px;
+      transition: width 1s ease;
+    }
+
+    .divider {
+      width: min(100%, 500px);
+      height: 1px; background: rgba(255,255,255,0.05);
+      margin-bottom: 20px;
+    }
+
+    /* Grid */
+    .grid-container {
+      width: 100%;
+      max-width: 600px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .grid {
+      display: grid;
+      gap: 2px;
+      width: max-content;
+      margin: 0 auto;
+    }
+
+    .dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      transition: transform 0.15s;
+      cursor: default;
+    }
+
+    .dot.lived {
+      /* color set inline via JS */
+    }
+
+    .dot.current {
+      background: #ffd050 !important;
+      box-shadow: 0 0 6px 2px rgba(255, 200, 60, 0.5);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    .dot.future {
+      /* dim color set inline */
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 5px 1px rgba(255,200,60,0.4); }
+      50%       { box-shadow: 0 0 10px 4px rgba(255,200,60,0.7); }
+    }
+
+    /* Age labels */
+    .grid-wrapper {
+      display: flex; gap: 6px; align-items: flex-start;
+      width: 100%; max-width: 640px;
+      overflow-x: auto;
+    }
+
+    .age-labels {
+      display: flex; flex-direction: column;
+      gap: 0px; flex-shrink: 0;
+      padding-top: 0;
+    }
+
+    .age-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 8px; color: #4a3a30;
+      height: 9px; /* dot + gap */
+      display: flex; align-items: center;
+      justify-content: flex-end;
+      width: 22px;
+    }
+
+    /* Legend */
+    .legend {
+      display: flex; gap: 18px; flex-wrap: wrap;
+      justify-content: center; margin-top: 24px;
+    }
+
+    .legend-item {
+      display: flex; align-items: center; gap: 7px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px; color: #5a5040; letter-spacing: 0.08em;
+    }
+
+    .legend-dot {
+      width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0;
+    }
+
+    .footer {
+      margin-top: 32px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; letter-spacing: 0.25em;
+      color: #3a2e28; text-transform: lowercase;
+    }
+
+    .tooltip {
+      position: fixed; bottom: 20px; left: 50%;
+      transform: translateX(-50%);
+      background: rgba(15,12,10,0.96);
+      border: 1px solid rgba(255,255,255,0.08);
+      padding: 7px 14px; border-radius: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; color: #c8bfb0;
+      pointer-events: none; z-index: 100;
+      white-space: nowrap;
+      opacity: 0; transition: opacity 0.2s;
+    }
+    .tooltip.visible { opacity: 1; }
+  </style>
+</head>
+<body>
+
+<div class="bg-glow"></div>
+
+<div class="wrapper">
+  <p class="eyebrow">memento mori</p>
+  <h1>Your Life in Weeks</h1>
+  <p class="subtitle">Each dot is one week. Make them count.</p>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="progress-bar">
+    <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="grid-wrapper">
+    <div class="age-labels" id="age-labels"></div>
+    <div class="grid-container">
+      <div class="grid" id="dot-grid"></div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#8b1a1a"></div> Early life
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#e07a30"></div> Mid life
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#3a8a42"></div> Later life
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#ffd050; box-shadow:0 0 5px rgba(255,200,60,0.6)"></div> This week
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#1a1612"></div> Ahead
+    </div>
+  </div>
+
+  <p class="footer">born 24 july 1995</p>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+  // ── CONFIG ──────────────────────────────────────────────
+  const BIRTH_DATE      = new Date(1995, 6, 24); // month is 0-indexed
+  const LIFE_EXPECTANCY = 80;
+  const WEEKS_PER_ROW   = 52;
+  const TOTAL_ROWS      = LIFE_EXPECTANCY;
+  const TOTAL_WEEKS     = LIFE_EXPECTANCY * WEEKS_PER_ROW;
+  // ────────────────────────────────────────────────────────
+
+  const today = new Date();
+  const msLived = today - BIRTH_DATE;
+  const weeksLived = Math.floor(msLived / (1000 * 60 * 60 * 24 * 7));
+  const yearsLived = (msLived / (1000 * 60 * 60 * 24 * 365.25)).toFixed(1);
+  const weeksRemaining = Math.max(0, TOTAL_WEEKS - weeksLived);
+  const pct = Math.min(100, (weeksLived / TOTAL_WEEKS * 100)).toFixed(1);
+
+  // Stats
+  document.getElementById('stats').innerHTML = [
+    { label: 'Age',          value: yearsLived + ' yrs' },
+    { label: 'Weeks Lived',  value: weeksLived.toLocaleString() },
+    { label: 'Weeks Left',   value: weeksRemaining.toLocaleString() },
+    { label: 'Life Used',    value: pct + '%' },
+  ].map(s => `
+    <div class="stat">
+      <div class="stat-value">${s.value}</div>
+      <div class="stat-label">${s.label}</div>
+    </div>
+  `).join('');
+
+  // Progress
+  document.getElementById('progress-fill').style.width = pct + '%';
+
+  // Gradient color function
+  function gradientColor(t) {
+    const keys = [
+      [0.00, [120, 15, 15]],
+      [0.30, [185, 28, 20]],
+      [0.50, [215, 88, 28]],
+      [0.68, [175, 155, 35]],
+      [0.82, [85, 145, 42]],
+      [1.00, [38, 108, 48]],
+    ];
+    for (let i = 0; i < keys.length - 1; i++) {
+      const [t0, c0] = keys[i];
+      const [t1, c1] = keys[i + 1];
+      if (t >= t0 && t <= t1) {
+        const f = (t - t0) / (t1 - t0);
+        return [
+          Math.round(c0[0] + f * (c1[0] - c0[0])),
+          Math.round(c0[1] + f * (c1[1] - c0[1])),
+          Math.round(c0[2] + f * (c1[2] - c0[2])),
+        ];
+      }
+    }
+    return keys[keys.length - 1][1];
+  }
+
+  // Build dot grid (columns = weeks/year, rows = age)
+  const grid = document.getElementById('dot-grid');
+  grid.style.gridTemplateColumns = `repeat(${WEEKS_PER_ROW}, 7px)`;
+  grid.style.gridTemplateRows    = `repeat(${TOTAL_ROWS}, 7px)`;
+
+  const tooltip = document.getElementById('tooltip');
+  let tooltipTimer;
+
+  for (let row = 0; row < TOTAL_ROWS; row++) {
+    for (let col = 0; col < WEEKS_PER_ROW; col++) {
+      const weekIndex = row * WEEKS_PER_ROW + col;
+      const t = weekIndex / TOTAL_WEEKS;
+      const dot = document.createElement('div');
+      dot.className = 'dot';
+
+      if (weekIndex < weeksLived) {
+        const [r, g, b] = gradientColor(t);
+        dot.style.background = `rgb(${r},${g},${b})`;
+        dot.classList.add('lived');
+      } else if (weekIndex === weeksLived) {
+        dot.classList.add('current');
+      } else {
+        const [r, g, b] = gradientColor(t);
+        dot.style.background = `rgb(${Math.max(10,Math.round(r*0.11))},${Math.max(8,Math.round(g*0.11))},${Math.max(8,Math.round(b*0.11))})`;
+        dot.classList.add('future');
+      }
+
+      // Tooltip on tap/hover
+      const age = row;
+      const week = col + 1;
+      const state = weekIndex < weeksLived ? 'spent' : weekIndex === weeksLived ? '← you are here' : 'ahead';
+      const label = `Age ${age}, Week ${week} · ${state}`;
+
+      dot.addEventListener('mouseenter', () => showTooltip(label));
+      dot.addEventListener('mouseleave', hideTooltip);
+      dot.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        showTooltip(label);
+        clearTimeout(tooltipTimer);
+        tooltipTimer = setTimeout(hideTooltip, 2000);
+      }, { passive: false });
+
+      grid.appendChild(dot);
+    }
+  }
+
+  // Age labels
+  const ageLabels = document.getElementById('age-labels');
+  for (let row = 0; row < TOTAL_ROWS; row++) {
+    const lbl = document.createElement('div');
+    lbl.className = 'age-label';
+    if (row % 10 === 0) {
+      const t = (row * WEEKS_PER_ROW) / TOTAL_WEEKS;
+      const [r, g, b] = gradientColor(t);
+      lbl.style.color = `rgb(${Math.round(r*0.55)},${Math.round(g*0.55)},${Math.round(b*0.55)})`;
+      lbl.textContent = row;
+    }
+    ageLabels.appendChild(lbl);
+  }
+
+  function showTooltip(text) {
+    tooltip.textContent = text;
+    tooltip.classList.add('visible');
+  }
+  function hideTooltip() {
+    tooltip.classList.remove('visible');
+  }
+</script>
+</body>
+</html>
